@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: individual-consumer-project
+  profiles:
+    active: local
+  kafka:
+    bootstrap-servers: 15.165.55.149:9092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+server:
+  port: 8081
