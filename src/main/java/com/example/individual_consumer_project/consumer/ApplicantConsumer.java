@@ -1,12 +1,36 @@
 package com.example.individual_consumer_project.consumer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
+@RequiredArgsConstructor
 public class ApplicantConsumer {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+
+    
+    // 서버 요청 상관없이 프론트 웹페이지에 데이터 보내기
+    public SseEmitter subscribe() {
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        emitters.add(emitter);
+
+        emitter.onCompletion(() -> emitters.remove(emitter));
+        emitter.onTimeout(() -> emitters.remove(emitter));
+
+        return emitter;
+    }
+
 
     @KafkaListener(
             topics = "applicant.send",
@@ -24,15 +48,19 @@ public class ApplicantConsumer {
 
         ApplicantConsumerMessage applicantConsumerMessage = ApplicantConsumerMessage.fromJson(message);
 
-        System.out.println("applicantConsumerMessage : " + applicantConsumerMessage);
+        System.out.println("applicantConsumerMessage : " + applicantConsumerMessage.getApplicantId());
 
-        // ... 실제 이메일 발송 로직은 생략 ...
-        try {
-            Thread.sleep(3000);
-        }catch (InterruptedException e){
-            throw new RuntimeException("이메일 전송 실패");
+        // ✅ SSE로 프론트에 메시지 전송
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("applicant-message")
+                        .data(applicantConsumerMessage, MediaType.APPLICATION_JSON));
+            } catch (IOException e) {
+                emitter.completeWithError(e);
+                emitters.remove(emitter);
+            }
         }
-
 
         System.out.println("이메일 발송 완료");
 
