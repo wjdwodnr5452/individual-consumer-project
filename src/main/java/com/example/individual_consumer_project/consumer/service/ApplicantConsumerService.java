@@ -1,7 +1,13 @@
-package com.example.individual_consumer_project.consumer;
+package com.example.individual_consumer_project.consumer.service;
 
+import com.example.individual_consumer_project.comm.encrypt.EncryptionService;
+import com.example.individual_consumer_project.consumer.message.ApplicantConsumerMessage;
+import com.example.individual_consumer_project.consumer.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
@@ -14,11 +20,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 @RequiredArgsConstructor
-public class ApplicantConsumer {
+@Slf4j
+public class ApplicantConsumerService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
-
+    private final UserRepository userRepository;
+    private final EncryptionService encryptionService;
     
     // 서버 요청 상관없이 프론트 웹페이지에 데이터 보내기
     public SseEmitter subscribe() {
@@ -44,13 +52,14 @@ public class ApplicantConsumer {
 
     )
     public void consume(String message){
-        System.out.println("Kafka로부터 받아온 메시지 : " + message);
 
         ApplicantConsumerMessage applicantConsumerMessage = ApplicantConsumerMessage.fromJson(message);
 
-        System.out.println("applicantConsumerMessage : " + applicantConsumerMessage.getApplicantId());
+        log.info("applicantConsumerMessage {} : " , applicantConsumerMessage.getApplicantId());
 
-        // ✅ SSE로 프론트에 메시지 전송
+        String applicantUserName = encryptionService.decryptAes(userRepository.findNameById(applicantConsumerMessage.getUserId()));
+
+        // SSE로 프론트에 메시지 전송
         for (SseEmitter emitter : emitters) {
             try {
                 emitter.send(SseEmitter.event()

@@ -1,10 +1,10 @@
-package com.example.individual_consumer_project.consumer;
+package com.example.individual_consumer_project.consumer.service;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ApplicantConsumerDlt {
+public class ApplicantConsumerDltService {
 
     @KafkaListener(
             topics = "applicant.send.dlt",

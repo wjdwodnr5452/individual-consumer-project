@@ -1,4 +1,4 @@
-package com.example.individual_consumer_project.consumer;
+package com.example.individual_consumer_project.consumer.message;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
