@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
@@ -28,7 +30,7 @@ public class ApplicantConsumerService {
     private final UserRepository userRepository;
     private final EncryptionService encryptionService;
     
-    // 서버 요청 상관없이 프론트 웹페이지에 데이터 보내기
+   // 서버 요청 상관없이 프론트 웹페이지에 데이터 보내기
     public SseEmitter subscribe() {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
@@ -40,7 +42,9 @@ public class ApplicantConsumerService {
     }
 
 
-    @KafkaListener(
+
+
+   @KafkaListener(
             topics = "applicant.send",
             groupId = "applicant-send-group",
             concurrency = "3" // 멀티스레드
@@ -74,5 +78,10 @@ public class ApplicantConsumerService {
         System.out.println("이메일 발송 완료");
 
     }
+
+
+
+
+
 
 }

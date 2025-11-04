@@ -21,16 +21,16 @@ public class ApplicantSseController {
 
     @GetMapping("/subscribe/applicant")
     public SseEmitter subscribe(@SessionAttribute(SessionConst.LOGIN_MEMBER) User user) {
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
 
-        if(user != null) {
-
-            log.info("user :  {} " , user);
-
-        }else {
-            System.out.println("user :  " + "세션값 없음");
+        if (user != null) {
+            log.info("SSE Connected user: {}", user.getId());
+            //applicantConsumer.addEmitter(user.getId(), emitter);
+        } else {
+            log.info("SSE Connected: anonymous");
         }
 
-        return applicantConsumer.subscribe();
+        return emitter;
     }
 
 }
