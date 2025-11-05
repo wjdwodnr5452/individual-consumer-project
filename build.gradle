@@ -34,6 +34,11 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// redis 추가
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// redis 세션 클러스터링
+	implementation 'org.springframework.session:spring-session-data-redis'
 }
 
 tasks.named('test') {
